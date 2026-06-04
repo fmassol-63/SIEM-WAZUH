@@ -1,3 +1,4 @@
+import os
 import json
 import time
 import requests
@@ -8,7 +9,7 @@ urllib3.disable_warnings()
 
 OPENSEARCH_URL = "https://192.168.20.30:9200"
 USER = "admin"
-PASS = "SecretPassword"
+PASS = os.environ.get("OPENSEARCH_PASSWORD", "changeme")
 LOG_FILE = "/var/log/suricata/eve.json"
 
 def send_log(event):
