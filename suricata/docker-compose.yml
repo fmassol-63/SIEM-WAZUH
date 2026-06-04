@@ -1,0 +1,50 @@
+services:
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: suricata
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./logs:/var/log/suricata
+      - ./rules:/etc/suricata/rules
+      - ./suricata.yaml:/etc/suricata/suricata.yaml
+    command: -i ens33 -i ens37 --init-errors-fatal
+    mem_limit: 1g
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
+    restart: always
+
+  log-forwarder:
+    build: .
+    container_name: log-forwarder
+    mem_limit: 128m
+    volumes:
+      - ./logs:/var/log/suricata
+    command: sh -c "sleep 10 && python /forward.py"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+  logrotate:
+    image: alpine:latest
+    container_name: logrotate
+    volumes:
+      - ./logs:/var/log/suricata
+    command: >
+      sh -c "while true; do
+        find /var/log/suricata -name '*.json' -mtime +1 -delete;
+        find /var/log/suricata -name '*.log' -mtime +1 -delete;
+        echo 'Logs nettoyés';
+        sleep 86400;
+      done"
+    restart: always
+    mem_limit: 64m

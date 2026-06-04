@@ -6,3 +6,7 @@ multi-node/config/wazuh_indexer_ssl_certs/*.key
 single-node/.env
 multi-node/.env
 .github/
+
+# Suricata
+suricata/emerging.rules.tar.gz
+suricata/logs/
