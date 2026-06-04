@@ -11,3 +11,4 @@ multi-node/.env
 suricata/emerging.rules.tar.gz
 suricata/logs/
 suricata/rules/
+suricata/.env
