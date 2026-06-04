@@ -6,6 +6,12 @@ services:
     image: wazuh/wazuh-manager:4.9.2
     hostname: wazuh.manager
     restart: always
+    mem_limit: 2g
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     ulimits:
       memlock:
         soft: -1
@@ -20,14 +26,15 @@ services:
       - "55000:55000"
     environment:
       - INDEXER_URL=https://wazuh.indexer:9200
-      - INDEXER_USERNAME=admin
-      - INDEXER_PASSWORD=SecretPassword
-      - FILEBEAT_SSL_VERIFICATION_MODE=full
+      - INDEXER_USERNAME=fmassol
+      - INDEXER_PASSWORD=${INDEXER_PASSWORD}
       - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem
       - SSL_CERTIFICATE=/etc/ssl/filebeat.pem
       - SSL_KEY=/etc/ssl/filebeat.key
       - API_USERNAME=wazuh-wui
-      - API_PASSWORD=MyS3cr37P450r.*-
+      - API_PASSWORD=${API_PASSWORD}
+      - WAZUH_MANAGER_MAX_AGENTS=100
+      - FILEBEAT_SSL_VERIFICATION_MODE=none
     volumes:
       - wazuh_api_configuration:/var/ossec/api/configuration
       - wazuh_etc:/var/ossec/etc
@@ -49,10 +56,18 @@ services:
     image: wazuh/wazuh-indexer:4.9.2
     hostname: wazuh.indexer
     restart: always
+    mem_limit: 2g
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     ports:
       - "9200:9200"
     environment:
       - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "plugins.index_state_management.enabled=true"
+      - "plugins.index_state_management.job_interval=1"
     ulimits:
       memlock:
         soft: -1
@@ -74,6 +89,12 @@ services:
     image: wazuh/wazuh-dashboard:4.9.2
     hostname: wazuh.dashboard
     restart: always
+    mem_limit: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     ports:
       - 443:5601
     environment:
@@ -81,7 +102,7 @@ services:
       - INDEXER_PASSWORD=SecretPassword
       - WAZUH_API_URL=https://wazuh.manager
       - DASHBOARD_USERNAME=kibanaserver
-      - DASHBOARD_PASSWORD=kibanaserver
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
       - API_USERNAME=wazuh-wui
       - API_PASSWORD=MyS3cr37P450r.*-
     volumes:
